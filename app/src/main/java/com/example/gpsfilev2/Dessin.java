@@ -12,7 +12,7 @@ import android.view.View;
 import java.util.ArrayList;
 
 public class Dessin extends View {
-
+// jlnhojb
     Float diffZone=(float)2;
     int i = 0;
     Boolean manual = true;
