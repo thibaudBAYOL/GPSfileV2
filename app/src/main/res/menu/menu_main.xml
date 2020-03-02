@@ -1,0 +1,40 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.gpsfilev2.MainActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_t3"
+        android:orderInCategory="100"
+        android:title="test3"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/diffZoneP"
+        android:orderInCategory="100"
+        android:title="diffZoneP"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/diffZoneM"
+        android:orderInCategory="100"
+        android:title="diffZoneM"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/captureMenu"
+        android:orderInCategory="100"
+        android:title="capture"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menuTest"
+        android:orderInCategory="100"
+        android:title="test"
+        app:showAsAction="never" />
+
+</menu>
