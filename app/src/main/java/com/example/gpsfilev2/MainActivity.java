@@ -19,6 +19,7 @@ import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
 
+    Boolean nop = false;
     Boolean cacher = true;
     Button add;
     Boolean addConf = false;
@@ -106,7 +107,13 @@ public class MainActivity extends AppCompatActivity {
 
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        //
+
+
+        if (id == R.id.testNOP) {
+            nop = true;
+            return true;
+        } else if (id == R.id.action_settings) {
             diffZone = (float)10;
             dessin.diffZone = diffZone;
             return true;
@@ -140,7 +147,25 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }else if (id == R.id.menuTest) {
            item.setTitle(dessin.diffZone.toString());
-        }
+        }else if( id == R.id.export0){
+            String name = fileName.getText().toString();
+            String cont =myFiles.lireSimple(name);
+
+            File file0 = myFiles.ouvrireFichier(name,true);
+            myFiles.ecrireFile(file0,cont);
+          //  myFiles.inOut = false;
+
+        }else if( id == R.id.import0){
+
+                String name = fileName.getText().toString();
+                myFiles.inOut = true;
+                String cont =myFiles.lireSimple(name);
+                myFiles.inOut = false;
+                File file0 = myFiles.ouvrireFichier(name,false);
+                myFiles.ecrireFile(file0,cont);
+
+
+            }
         return super.onOptionsItemSelected(item);
     }
 
@@ -392,7 +417,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        myLocalisation.preOnPause();
+        if(nop == false){
+            myLocalisation.preOnPause();
+        }
     }
 
 

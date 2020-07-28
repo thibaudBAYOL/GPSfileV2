@@ -15,6 +15,7 @@ import java.io.IOException;
 
 public class MyFiles {
 
+    boolean inOut=false;
     Context leC;
 
     public MyFiles(Context tt){
@@ -23,11 +24,11 @@ public class MyFiles {
 
 
     String lireSimple(String n){
-        return lireFile(ouvrireFichier(n, false));
+        return lireFile(ouvrireFichier(n, inOut));
     }
 
     boolean existe(String name){
-        return ouvrireFichier(name,false) != null ;
+        return ouvrireFichier(name,inOut) != null ;
     }
 
     File ouvrireFichier(String filename, Boolean sloc){
@@ -36,17 +37,22 @@ public class MyFiles {
         File director = null ;
         if( sloc == true ) {
 
-            if (Environment.DIRECTORY_DOWNLOADS.equals(Environment.getExternalStorageState())) {
-                // Le périphérique est bien monté
-                System.out.println("rep EXT OK ");
-                director = leC.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
-
-            } else {
-                // Le périphérique n'est pas bien monté ou on ne peut écrire dessus
-                System.out.println("rep EXT BAD ");
-                //zoneOut.setText("rep EXT BAD ");
+            director = new File("/storage/self/primary/GPSfileV2");
+            if (!director.exists()) {
+                director.mkdir();
+                System.out.println("/////////////////////////////////MKDIR ");
+            }else{
+                System.out.println("/////////////////////////////////EXIST ");
             }
 
+            if (!director.exists()) {
+                System.out.println("/////////////////////////////////toujour pas ");
+            }
+            if( !(director.canRead() & director.canWrite())){
+                System.out.println("/////////////////////////////////RW ");
+                //println(" read  "+director.canRead() +" write" + director.canWrite());
+            }
+            System.out.println("/////////////////////////////////AA ");
         }else{
             director = leC.getFilesDir();
         }
