@@ -165,7 +165,10 @@ public class MainActivity extends AppCompatActivity {
                 myFiles.ecrireFile(file0,cont);
 
 
-            }
+        }else if( id == R.id.bleu){
+            Point p = dessin.ref;
+            majLaLoLocalisation((p.x/100000)+"",(p.y/100000)+"",true);
+        }
         return super.onOptionsItemSelected(item);
     }
 
@@ -186,11 +189,21 @@ public class MainActivity extends AppCompatActivity {
             if( tabCorr.length >= 1) {
 
                 for (int i = 0; i < tabCorr.length ; i++) {
-                    String[] longlat = tabCorr[i].split("@");
+                    String sss =tabCorr[i];
+                    Boolean bleu = false;
+                    if(tabCorr[i].contains("#")) {
+                        bleu = true;
+                        sss = tabCorr[i].replace("#","");
+                    }
+                    String[] longlat = sss.split("@");
                     if (longlat.length >= 2) {
                         float x = Float.parseFloat(longlat[0]);
                         float y = Float.parseFloat(longlat[1]);
-                        dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000));
+                        if(bleu){
+                            dessin.ajoutPointBleu((int) (x * 100000), (int) (y * 100000));
+                        }else {
+                            dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000));
+                        }
                     }
                 }
             }
@@ -346,6 +359,11 @@ public class MainActivity extends AppCompatActivity {
         String lo = "" + String.valueOf(l.getLongitude());
         String la = "" + String.valueOf(l.getLatitude());
         textLoc.setText( lo+"@"+la+"\n="+count);
+
+        majLaLoLocalisation(lo,la,false);
+    }
+
+    private void majLaLoLocalisation(String lo,String la, boolean bleu){
         /// ?????
         int x = (int) (Float.parseFloat(lo) * 100000);
         int y = (int) (Float.parseFloat(la) * 100000) ;
@@ -353,7 +371,7 @@ public class MainActivity extends AppCompatActivity {
         dessin.modifRef( x , y );
 
 
-        if( capture.isChecked()){
+        if( capture.isChecked() || bleu){
 
             File file;
             file = myFiles.ouvrireFichier(fileName.getText().toString(),false);
@@ -368,8 +386,13 @@ public class MainActivity extends AppCompatActivity {
                     if (p.zone((float) x, (float) y,diffZone) && p.couleur== Color.BLACK) { inZone = true;}
                 }
                 if (!inZone) {
-                    myFiles.ecrireFile(file, lo + "@" + la + "\n" + cont);
-                    dessin.ajoutPoint(x, y);
+                    if(bleu){
+                        myFiles.ecrireFile(file, lo + "@" + la + "#\n" + cont);
+                        dessin.ajoutPointBleu(x, y);
+                    }else {
+                        myFiles.ecrireFile(file, lo + "@" + la + "\n" + cont);
+                        dessin.ajoutPoint(x, y);
+                    }
                 }
                 //contListView(myFiles.lireFile(file));
 
@@ -381,9 +404,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
     }
-
 
 
     int nbligne(String s ){

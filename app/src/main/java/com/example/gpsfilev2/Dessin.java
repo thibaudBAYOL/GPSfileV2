@@ -176,6 +176,16 @@ public class Dessin extends View {
     }
 
 
+    public boolean ajoutPointBleu(int x, int y) {
+
+        Point p=new Point(x,y,Color.MAGENTA, epaisseur*2);
+        lp.add(p);
+        invalidate ();
+
+        return true;
+    }
+
+
 
     public void majP(float epaisseur, int c){
 
