@@ -9,7 +9,10 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Dessin extends View {
 // jlnhojb
@@ -19,6 +22,7 @@ public class Dessin extends View {
 
     int nn = 0;
 
+    Point pointVu = null;
     Point ref = null;
 
     ArrayList<Point> lp = new ArrayList<>();
@@ -39,16 +43,25 @@ public class Dessin extends View {
         super(context, attrs);
     }
 
+    public void setPointVu(Point pointVu) {
+        this.pointVu = pointVu;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
         if(i == 0) {
             width = canvas.getWidth();
             height = canvas.getHeight();
             i += 1;
         }
-        Point p;
+        Point p=null;
+
+        Point lastP=null;
+
+        float lastpX = 0;
+        float lastpY = 0;
 
         float posX = 0;
         float posY = 0;
@@ -63,9 +76,16 @@ public class Dessin extends View {
         }
 
         nn = 0;
+        float x=0;
+        float y=0;
 
         for (int i=0; i<lp.size();i++){
             p= lp.get(i);
+
+            if( !( (p.couleur==Color.BLACK ) && (echelle/100)>1 && (lastP!=null && p.zone(lastP.x,lastP.y,(echelle/100))) ) ){
+
+
+
 // ?????? modifir presision zoom echelle
             paint.setStrokeWidth(p.epaisseur);
             if(i != 0){
@@ -74,21 +94,48 @@ public class Dessin extends View {
                 }else {
                     paint.setColor(p.couleur);//p.couleur);
                 }
+
+
+
             }else{
                 paint.setColor(Color.RED);
             }
 
-            float x= (canvas.getWidth()/2) + ((p.x - posX)*(canvas.getWidth()/echelle));
-            float y= (canvas.getHeight()/2) - ((p.y - posY )*(canvas.getWidth()/echelle));
+            x= (canvas.getWidth()/2) + ((p.x - posX)*(canvas.getWidth()/echelle));
+            y= (canvas.getHeight()/2) - ((p.y - posY )*(canvas.getWidth()/echelle));
 
             if( x >= 0 && y >= 0 && x <= canvas.getWidth() && y <= canvas.getHeight()) {
                 canvas.drawPoint(x, y, paint);
-                System.out.println("------x:" + p.x + " y:" + p.y + "---DrawArtivé" + i);
+                if(p.description!=""){
+                    paint.setTextSize(40);
+                    canvas.drawText(p.description,x,y+p.epaisseur+20,paint);
+                    paint.setTextSize(20);
+                }
+                if(p.timer!=null && (paint.getColor()==Color.GRAY || p.description!="") ) {
+                    paint.setTextSize(30);
+                    canvas.drawText(simpleDateFormat.format(p.timer), x, y - p.epaisseur, paint);
+                    paint.setTextSize(20);
+                }
+                //System.out.println("------x:" + p.x + " y:" + p.y + "---DrawArtivé" + i);
                 nn += 1;
             }
+                if( (lastP!=null && Math.abs(lastP.x-p.x) <50 && Math.abs(lastP.y-p.y) <50) ||
+
+               (lastP!=null && lastP.timer!=null && p.timer!=null && Math.abs(p.timer.getTime()-lastP.timer.getTime())<3600000 )
+
+                ){
+                    paint.setColor(p.couleur);
+                    paint.setStrokeWidth(epaisseur/3);
+                    canvas.drawLine(x,y,lastpX,lastpY,paint);
+                }
 
             // recherche sur paint et Canvas;
 
+                lastP = p;
+                lastpX = x;
+                lastpY = y;
+
+            }
         }
 
 
@@ -98,10 +145,21 @@ public class Dessin extends View {
             paint.setColor(ref.couleur);//p.couleur);
             canvas.drawPoint((canvas.getWidth() / 2), (canvas.getHeight() / 2), paint);
         }
-        canvas.drawText(""+ nn,10,10,paint);
+        canvas.drawText(""+ nn,10,20,paint);
+        paint.setColor(Color.RED);
+        canvas.drawLine(1,1,1,1+(((canvas.getWidth()/echelle)*(echelle/2))),paint);
 
 
-        System.out.println("----------------------------------DrawArtivéFin");
+
+        if(pointVu!=null) {
+            x = (canvas.getWidth() / 2) + ((pointVu.x - posX) * (canvas.getWidth() / echelle));
+            y = (canvas.getHeight() / 2) - ((pointVu.y - posY) * (canvas.getWidth() / echelle));
+            paint.setStrokeWidth(epaisseur*3);
+            paint.setColor(pointVu.couleur);
+            canvas.drawPoint(x, y, paint);
+            System.out.println("--------------------------------BBBBB"+x+"/"+ y);
+        }
+        //System.out.println("----------------------------------DrawArtivéFin");
 
 
 
@@ -130,10 +188,10 @@ public class Dessin extends View {
             float diffY = ((event.getY() - (height/2))/(width/echelle))/ralentire;
             System.out.println(""+width+"  "+height);
 
+            // 10/9/20
+            //Point ppp = new Point(ref.x+diffX,ref.y-diffY,Color.YELLOW,epaisseur/10);
+            //lp.add(ppp);
 
-            Point ppp = new Point(ref.x+diffX,ref.y-diffY,Color.YELLOW,epaisseur/2);
-
-            lp.add(ppp);
             ref.offSet(diffX, -diffY);
 
             invalidate();
@@ -158,27 +216,44 @@ public class Dessin extends View {
 
     public boolean modifRef(int x, int y){
         Point p=new Point(x,y,Color.GREEN, epaisseur);
-        Point ppp = new Point(p.x,p.y,Color.CYAN,epaisseur/3);
-        lp.add(ppp);
+        modifRefTrace(x,y);
         ref = p;
         invalidate ();
         return true;
     }
 
+    // 10/9/20
+    public boolean modifRefTrace(int x, int y) {
+        Point ppp = new Point(x, y, Color.CYAN, epaisseur / 3,new Date().getTime());
+        lp.add(ppp);
+        return true;
 
-    public boolean ajoutPoint(int x, int y) {
+    }
 
-        Point p=new Point(x,y,color, epaisseur);
+    // 10/9/20
+    public boolean ajoutPoint(int x, int y,long t) {
+
+        Point p=new Point(x,y,color, epaisseur,t);
         lp.add(p);
         invalidate ();
 
         return true;
     }
 
+    // 10/9/20
+    public boolean ajoutPointBleu(int x, int y,long t,String desc) {
 
-    public boolean ajoutPointBleu(int x, int y) {
+        Point p=new Point(x,y,Color.MAGENTA, epaisseur*2,t);
+        p.setDescription(desc);
+        lp.add(p);
+        invalidate ();
 
-        Point p=new Point(x,y,Color.MAGENTA, epaisseur*2);
+        return true;
+    }
+    // 10/9/20
+    public boolean ajoutPointCyan(int x, int y,long t) {
+
+        Point p=new Point(x,y,Color.CYAN, epaisseur,t);
         lp.add(p);
         invalidate ();
 

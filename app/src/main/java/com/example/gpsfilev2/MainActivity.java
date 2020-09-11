@@ -1,5 +1,6 @@
 package com.example.gpsfilev2;
 
+import android.content.ClipData;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,10 +17,11 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.File;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
-    Boolean nop = false;
+    //Boolean nop = false;
     Boolean cacher = true;
     Button add;
     Boolean addConf = false;
@@ -33,6 +35,10 @@ public class MainActivity extends AppCompatActivity {
 
     MyFiles myFiles;
 
+    MenuItem menuItemX;
+
+    Button bVu;
+
     EditText fileName;
     EditText contenu;
     boolean confirmation = false;
@@ -40,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     TextView v;
 
     Switch capture;
-
+    //Switch ptVU;
 
 
 /////////Affiche
@@ -49,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     Dessin dessin;
 
     EditText echelle;
+    EditText editTextici;
     TextView textLoc;
     Switch aSwitchManuel;
 
@@ -76,13 +83,17 @@ public class MainActivity extends AppCompatActivity {
                     echelle.setVisibility(View.INVISIBLE);
                     contenu.setVisibility(View.INVISIBLE);
                     add.setVisibility(View.INVISIBLE);
+                    editTextici.setVisibility(View.INVISIBLE);
+                    bVu.setVisibility(View.INVISIBLE);
+
                 }else{
                     capture.setVisibility(View.VISIBLE);
                     fileName.setVisibility(View.VISIBLE);
                     echelle.setVisibility(View.VISIBLE);
                     contenu.setVisibility(View.VISIBLE);
                     add.setVisibility(View.VISIBLE);
-
+                    editTextici.setVisibility(View.VISIBLE);
+                    bVu.setVisibility(View.VISIBLE);
                 }
 
 
@@ -108,14 +119,20 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
         //noinspection SimplifiableIfStatement
         //
-
+        menuItemX = findViewById(R.id.menuTest);
 
         if (id == R.id.testNOP) {
-            nop = true;
+            //nop = true;
+            diffZone = (float)2;
+            dessin.diffZone = diffZone;
+            //item.setTitle("X"+dessin.diffZone.toString());
+            //menuItemX.setTitle("X"+dessin.diffZone.toString());
             return true;
         } else if (id == R.id.action_settings) {
             diffZone = (float)10;
             dessin.diffZone = diffZone;
+            //item.setTitle("X"+dessin.diffZone.toString());
+            //menuItemX.setTitle("X"+dessin.diffZone.toString());
             return true;
         } else if (id == R.id.action_t3) {
             cacher = true;
@@ -131,7 +148,8 @@ public class MainActivity extends AppCompatActivity {
                     diffZone -= (float) 1;
             }
             dessin.diffZone = diffZone;
-            vtext("d"+diffZone.toString());
+            vtext("X"+diffZone.toString());
+            //menuItemX.setTitle("X"+dessin.diffZone.toString());
             return true;
         }else if(id == R.id.captureMenu){
             if(!capture.isChecked()) {
@@ -146,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }else if (id == R.id.menuTest) {
-           item.setTitle(dessin.diffZone.toString());
+           item.setTitle("X"+dessin.diffZone.toString());
         }else if( id == R.id.export0){
             String name = fileName.getText().toString();
             String cont =myFiles.lireSimple(name);
@@ -182,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
 
         MyFiles myFiles = new MyFiles(this);
         String cont = myFiles.lireSimple(fileName.getText().toString());
-        if( cont != "File not exist"){
+        if( !cont.equals("File not exist") ){
 
             tabCorr = cont.split("\n");
 
@@ -190,19 +208,46 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < tabCorr.length ; i++) {
                     String sss =tabCorr[i];
+                    long time=0;
+                    String desc ="";
                     Boolean bleu = false;
-                    if(tabCorr[i].contains("#")) {
+
+
+                    // 10/9/20
+                    String[] tab;
+                    if(sss.contains("@time@")){
+                        tab = sss.split("@time@");
+                        sss = tab[0];
+                        if(tab.length==2){
+                            // timer tab[1];
+                            time = Long.parseLong(tab[1]);
+                        }
+                        //System.out.println("0:"+sss);
+                    }
+
+                    tab = null;
+
+                    if(sss.contains("#")) {
+                        //System.out.println("1:"+sss);
                         bleu = true;
-                        sss = tabCorr[i].replace("#","");
+                        tab = sss.split("#");
+                        sss = tab[0];
+                        // 10/9/20
+                        if(tab.length==2) {
+                            desc = tab[1];
+                        }
+                        //sss = sss.replace("#","");
+                        //System.out.println("2:"+sss);
                     }
                     String[] longlat = sss.split("@");
                     if (longlat.length >= 2) {
                         float x = Float.parseFloat(longlat[0]);
                         float y = Float.parseFloat(longlat[1]);
+                        // 10/9/20
                         if(bleu){
-                            dessin.ajoutPointBleu((int) (x * 100000), (int) (y * 100000));
+                            dessin.ajoutPointBleu((int) (x * 100000), (int) (y * 100000),time,desc);
                         }else {
-                            dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000));
+                            dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000),time);
                         }
                     }
                 }
@@ -211,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         }else {
-            System.out.println("File not exist");
+            System.out.println("File not exist0");
         }
 
         /////
@@ -222,6 +267,33 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void init(){
+
+        v = findViewById(R.id.V);
+
+        menuItemX = findViewById(R.id.menuTest);
+
+        bVu = findViewById(R.id.pointVu);
+
+        bVu.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String s = contenu.getText().toString();
+                if(s.contains("@")){
+                    String tab[] = s.split("@");
+                    if(tab.length==2) {
+
+                        int x = (int) (Float.parseFloat(tab[0]) * 100000);
+                        int y = (int) (Float.parseFloat(tab[1]) * 100000) ;
+
+                        dessin.modifRef(x, y);
+
+                       if (x !=0 && y !=0) {
+                           dessin.setPointVu(new Point(x, y, Color.RED, 0));
+                       }
+                    }
+                }
+            }
+        });
 
 
         add = findViewById(R.id.add);
@@ -295,7 +367,10 @@ public class MainActivity extends AppCompatActivity {
 
         capture = findViewById(R.id.capture);
 
-        v = findViewById(R.id.V);
+        editTextici = findViewById(R.id.editTextici);
+        //ptVU = findViewById(R.id.ptVu);
+
+
 
         ////////////////////
 
@@ -335,7 +410,7 @@ public class MainActivity extends AppCompatActivity {
         LocationListener ln = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
-                if(aSwitchManuel.isChecked()) { majLocalisation(location); }
+                 majLocalisation(location);
             }
             @Override
             public void onStatusChanged(String s, int i, Bundle bundle) {
@@ -359,7 +434,7 @@ public class MainActivity extends AppCompatActivity {
         String lo = "" + String.valueOf(l.getLongitude());
         String la = "" + String.valueOf(l.getLatitude());
         textLoc.setText( lo+"@"+la+"\n="+count);
-
+        editTextici.setText(lo+"@"+la);
         majLaLoLocalisation(lo,la,false);
     }
 
@@ -368,7 +443,11 @@ public class MainActivity extends AppCompatActivity {
         int x = (int) (Float.parseFloat(lo) * 100000);
         int y = (int) (Float.parseFloat(la) * 100000) ;
 
-        dessin.modifRef( x , y );
+        if(aSwitchManuel.isChecked()) {
+            dessin.modifRef(x, y);
+        }else{
+            dessin.modifRefTrace(x,y);
+        }
 
 
         if( capture.isChecked() || bleu){
@@ -383,15 +462,19 @@ public class MainActivity extends AppCompatActivity {
                 }
                 inZone = false;
                 for (Point p:dessin.lp) {
-                    if (p.zone((float) x, (float) y,diffZone) && p.couleur== Color.BLACK) { inZone = true;}
+                    if (p.zone((float) x, (float) y,diffZone) && p.epaisseur>=dessin.epaisseur) { inZone = true;}
                 }
                 if (!inZone) {
+
+                    // 10/9/20
+                    long t = new Date().getTime();
                     if(bleu){
-                        myFiles.ecrireFile(file, lo + "@" + la + "#\n" + cont);
-                        dessin.ajoutPointBleu(x, y);
+                        String desc = contenu.getText().toString();
+                        myFiles.ecrireFile(file, lo + "@" + la + "#"+desc+"@time@"+t+"\n" + cont); // file IN
+                        dessin.ajoutPointBleu(x, y,t,desc);
                     }else {
-                        myFiles.ecrireFile(file, lo + "@" + la + "\n" + cont);
-                        dessin.ajoutPoint(x, y);
+                        myFiles.ecrireFile(file, lo + "@" + la + "@time@"+t+"\n" + cont);
+                        dessin.ajoutPointCyan(x, y,t);
                     }
                 }
                 //contListView(myFiles.lireFile(file));
@@ -438,9 +521,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if(nop == false){
+        //if(nop == false){
             myLocalisation.preOnPause();
-        }
+        //}
     }
 
 
