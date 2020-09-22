@@ -9,7 +9,7 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import java.text.DateFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -146,8 +146,7 @@ public class Dessin extends View {
             canvas.drawPoint((canvas.getWidth() / 2), (canvas.getHeight() / 2), paint);
         }
         canvas.drawText(""+ nn,10,20,paint);
-        paint.setColor(Color.RED);
-        canvas.drawLine(1,1,1,1+(((canvas.getWidth()/echelle)*(echelle/2))),paint);
+
 
 
 
