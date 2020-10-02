@@ -79,8 +79,7 @@ public class MyFiles {
             //zoneOut.setText("MERDE");
         }
 
-        MediaScannerConnection.scanFile(leC, new String[] {file.getPath()}, null, null);
-        leC.sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)));
+
 
     }
 
