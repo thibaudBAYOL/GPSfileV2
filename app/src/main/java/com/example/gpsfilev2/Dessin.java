@@ -121,7 +121,7 @@ public class Dessin extends View {
             }
                 if( (lastP!=null && Math.abs(lastP.x-p.x) <50 && Math.abs(lastP.y-p.y) <50) ||
 
-               (lastP!=null && lastP.timer!=null && p.timer!=null && Math.abs(p.timer.getTime()-lastP.timer.getTime())<60000 )
+               (lastP!=null && lastP.timer!=null && p.timer!=null && Math.abs(p.timer.getTime()-lastP.timer.getTime())<10000 )
 
                 ){
                     paint.setColor(p.couleur);
