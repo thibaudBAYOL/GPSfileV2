@@ -4,7 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.annotation.Nullable;
+
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -35,11 +35,13 @@ public class Dessin extends View {
 
     Paint paint = new Paint();
 
+
+
     public void setDiffZone(Float diffZone) {
         this.diffZone = diffZone;
     }
 
-    public Dessin(Context context, @Nullable AttributeSet attrs) {
+    public Dessin(Context context,  AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -156,7 +158,7 @@ public class Dessin extends View {
             paint.setStrokeWidth(epaisseur*3);
             paint.setColor(pointVu.couleur);
             canvas.drawPoint(x, y, paint);
-            System.out.println("--------------------------------BBBBB"+x+"/"+ y);
+            //System.out.println("--------------------------------BBBBB"+x+"/"+ y);
         }
         //System.out.println("----------------------------------DrawArtivéFin");
 
@@ -185,7 +187,7 @@ public class Dessin extends View {
 
             float diffX = ((event.getX() - (width/2))/(width/echelle) )/ralentire;
             float diffY = ((event.getY() - (height/2))/(width/echelle))/ralentire;
-            System.out.println(""+width+"  "+height);
+            //System.out.println(""+width+"  "+height);
 
             // 10/9/20
             //Point ppp = new Point(ref.x+diffX,ref.y-diffY,Color.YELLOW,epaisseur/10);
@@ -194,6 +196,8 @@ public class Dessin extends View {
             ref.offSet(diffX, -diffY);
 
             invalidate();
+
+
 
         }
 
@@ -255,6 +259,7 @@ public class Dessin extends View {
         Point p=new Point(x,y,Color.CYAN, epaisseur,t);
         lp.add(p);
         invalidate ();
+
 
         return true;
     }

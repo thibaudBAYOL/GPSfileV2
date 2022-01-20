@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity {
     Button add;
     Boolean addConf = false;
     Boolean inZone= false;
-    Float diffZone = (float)2;
+    Float diffZone = (float)5;
 
 //////////MAIN
     public static final int MAXI = 3011;
@@ -60,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
     Switch aSwitchManuel;
 
     MyLocalisation myLocalisation;
+
+    Point lastpoint;
+
 /////////////////
 
 
@@ -128,7 +131,10 @@ public class MainActivity extends AppCompatActivity {
             //item.setTitle("X"+dessin.diffZone.toString());
             //menuItemX.setTitle("X"+dessin.diffZone.toString());
             return true;
-        } else if (id == R.id.action_settings) {
+        }else if(id == R.id.X5) {
+            diffZone = (float)5;
+            dessin.diffZone = diffZone;
+        }else if (id == R.id.action_settings) {
             diffZone = (float)10;
             dessin.diffZone = diffZone;
             //item.setTitle("X"+dessin.diffZone.toString());
@@ -267,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void init(){
-
+        lastpoint=null;
         v = findViewById(R.id.V);
 
         menuItemX = findViewById(R.id.menuTest);
@@ -392,6 +398,7 @@ public class MainActivity extends AppCompatActivity {
 
         miseAjourDuDessin();
 
+        if(dessin.lp.size()>0)lastpoint= dessin.lp.get(0);
 
 
         echelle = findViewById(R.id.echelle);
@@ -460,10 +467,29 @@ public class MainActivity extends AppCompatActivity {
                 if (cont == "File not exist") {
                     cont = "";
                 }
+
+
                 inZone = false;
-                for (Point p:dessin.lp) {
-                    if (p.zone((float) x, (float) y,diffZone) && p.epaisseur>=dessin.epaisseur) { inZone = true;}
+                if(lastpoint!=null && lastpoint.zone((float) x, (float) y,10)){
+                    System.out.println("---inzone---"+x+" "+y+ "  "+lastpoint.x+" "+lastpoint.y);
+
+                    int i=0;
+                    while(!inZone && i<dessin.lp.size()){
+                        Point p = dessin.lp.get(i);
+                        if (p.zone((float) x, (float) y,diffZone) && p.epaisseur>=dessin.epaisseur) {
+                            inZone = true;
+                        }
+                        i++;
+                    }
+                }else{
+                    if(lastpoint==null){
+                        System.out.println("---lastpoint==null---");
+                    }else{
+                        System.out.println("---outzone---"+x+" "+y+ "  "+lastpoint.x+" "+lastpoint.y);
+                    }
                 }
+
+
                 if (!inZone) {
 
                     // 10/9/20
@@ -475,7 +501,11 @@ public class MainActivity extends AppCompatActivity {
                     }else {
                         myFiles.ecrireFile(file, lo + "@" + la + "@time@"+t+"\n" + cont);
                         dessin.ajoutPointCyan(x, y,t);
+                        lastpoint=new Point(x,y);
+                        System.out.println("---new-last-point---"+x+" "+y);
                     }
+
+
                 }
                 //contListView(myFiles.lireFile(file));
 

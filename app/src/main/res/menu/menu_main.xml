@@ -20,6 +20,11 @@
         android:title="diffZoneP"
         app:showAsAction="never" />
     <item
+        android:id="@+id/X5"
+        android:orderInCategory="100"
+        android:title="X5"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/diffZoneM"
         android:orderInCategory="100"
         android:title="diffZoneM"

@@ -13,6 +13,10 @@ public class Point {
     String description;
     Date timer = null;
 
+    public Point(float x, float y){
+        this.x=x;
+        this.y=y;
+    }
     public Point(float x, float y, int color, float ep,long t){
         if(t!=0){
         timer = new Date(t);
