@@ -64,5 +64,10 @@
         android:title="POINT"
         app:showAsAction="never" />
 
+    <item
+        android:id="@+id/continu"
+        android:orderInCategory="100"
+        android:title="continu"
+        app:showAsAction="never" />
 
 </menu>

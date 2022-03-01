@@ -27,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     Boolean addConf = false;
     Boolean inZone= false;
     Float diffZone = (float)5;
+    Boolean continu = false;
 
 //////////MAIN
     public static final int MAXI = 3011;
@@ -192,6 +193,9 @@ public class MainActivity extends AppCompatActivity {
         }else if( id == R.id.bleu){
             Point p = dessin.ref;
             majLaLoLocalisation((p.x/100000)+"",(p.y/100000)+"",true);
+        }else if(id == R.id.continu){
+            continu = !continu;
+            item.setTitle("continu:"+continu);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -470,7 +474,7 @@ public class MainActivity extends AppCompatActivity {
 
 
                 inZone = false;
-                if(lastpoint!=null && lastpoint.zone((float) x, (float) y,10)){
+                if( (lastpoint!=null && lastpoint.zone((float) x, (float) y,10))|| !continu){
                     System.out.println("---inzone---"+x+" "+y+ "  "+lastpoint.x+" "+lastpoint.y);
 
                     int i=0;
