@@ -28,7 +28,7 @@ public class MyFiles {
     }
 
     boolean existe(String name){
-        return ouvrireFichier(name,inOut) != null ;
+        return ouvrireFichier(name,inOut).exists()  ;
     }
 
     File ouvrireFichier(String filename, Boolean sloc){
@@ -67,12 +67,15 @@ public class MyFiles {
     // stocage interne. // stocage externe
 
     void ecrireFile(File file, String fileContents ){
+        ecrireFile(file,  fileContents ,false);
+    }
+    void ecrireFile(File file, String fileContents ,Boolean append){
 
 
 
         if (file == null) return;
 
-        try (BufferedWriter writer =  new BufferedWriter(new FileWriter(file))) {
+        try (BufferedWriter writer =  new BufferedWriter(new FileWriter(file,append))) {
             writer.write(fileContents);
         } catch (IOException e) {
 

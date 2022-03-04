@@ -13,6 +13,10 @@ public class Point {
     String description;
     Date timer = null;
 
+    public Point(Point p){
+        this.x=p.x;
+        this.y=p.y;
+    }
     public Point(float x, float y){
         this.x=x;
         this.y=y;
@@ -43,6 +47,11 @@ public class Point {
 
     public Boolean zone(float lo, float la, float diff){
         return  Math.abs(x-lo) <  diff && Math.abs(y-la) <  diff;
+
+    }
+
+    public Boolean zone(Point p, float diff){
+        return  Math.abs(x-p.x) <  diff && Math.abs(y-p.y) <  diff;
 
     }
 

@@ -16,7 +16,9 @@ import java.util.Date;
 
 public class Dessin extends View {
 // jlnhojb
-    Float diffZone=(float)2;
+public static final int ZONE_LIMIT = 10000;
+
+    Float diffZone=(float)5;
     int i = 0;
     Boolean manual = true;
 
@@ -25,11 +27,14 @@ public class Dessin extends View {
     Point pointVu = null;
     Point ref = null;
 
+    Point zoneActif=null;
+    ArrayList<Point> lpActif = new ArrayList<>();
     ArrayList<Point> lp = new ArrayList<>();
+    ArrayList<Point> lptempo = new ArrayList<>();
 
     int color= Color.BLACK;
     float epaisseur = 10;
-    float echelle = 40;
+    float echelle = 200;
     int width;
     int height;
 
@@ -64,25 +69,26 @@ public class Dessin extends View {
 
         float lastpX = 0;
         float lastpY = 0;
+        firstRef();
 
-        float posX = 0;
-        float posY = 0;
-        if(lp.size() > 0) {
-            posX = lp.get(0).x;
-            posY = lp.get(0).y;
+        ArrayList<Point> lp_affiche;
+        if( (ZONE_LIMIT -(echelle/2))<=0 ){
+            lp_affiche = lp;
+        }else{
+            lp_affiche = lpActif;
         }
 
-        if( ref != null){
-            posX = ref.x;
-            posY = ref.y;
-        }
+        float posX = ref.x;
+        float posY = ref.y;
+
+
 
         nn = 0;
         float x=0;
         float y=0;
 
-        for (int i=0; i<lp.size();i++){
-            p= lp.get(i);
+        for (int i=0; i<lp_affiche.size();i++){
+            p= lp_affiche.get(i);
 
             if( !( (p.couleur==Color.BLACK ) && (echelle/100)>1 && (lastP!=null && p.zone(lastP.x,lastP.y,(echelle/100))) ) ){
 
@@ -90,7 +96,7 @@ public class Dessin extends View {
 
 // ?????? modifir presision zoom echelle
             paint.setStrokeWidth(p.epaisseur);
-            if(i != 0){
+            if(i != (lp.size()-1)){
                 if(p.zone(posX,posY,diffZone)){
                     paint.setColor(Color.GRAY);
                 }else {
@@ -113,7 +119,7 @@ public class Dessin extends View {
                     canvas.drawText(p.description,x,y+p.epaisseur+20,paint);
                     paint.setTextSize(20);
                 }
-                if(p.timer!=null && (paint.getColor()==Color.GRAY || p.description!="") ) {
+                if(p.timer!=null && (paint.getColor()==Color.GRAY ) ) {
                     paint.setTextSize(30);
                     canvas.drawText(simpleDateFormat.format(p.timer), x, y - p.epaisseur, paint);
                     paint.setTextSize(20);
@@ -138,6 +144,20 @@ public class Dessin extends View {
                 lastpY = y;
 
             }
+        }
+        lastpX=0;
+        for(int j =0; j<lptempo.size();j++){
+            p= lptempo.get(j);
+            x= (canvas.getWidth()/2) + ((p.x - posX)*(canvas.getWidth()/echelle));
+            y= (canvas.getHeight()/2) - ((p.y - posY )*(canvas.getWidth()/echelle));
+            if(lastpX!=0 && Math.abs(p.timer.getTime()-lastP.timer.getTime())<10000 ) {
+                paint.setColor(Color.CYAN);
+                paint.setStrokeWidth(epaisseur / 3);
+                canvas.drawLine(x, y, lastpX, lastpY, paint);
+            }
+            lastP = p;
+            lastpX = x;
+            lastpY = y;
         }
 
 
@@ -172,29 +192,21 @@ public class Dessin extends View {
     public boolean onTouchEvent(MotionEvent event) {
 
         if(manual) {
-            if(ref == null){
-                float posX = 0;
-                float posY = 0;
-                if(lp.size() > 0) {
-                    posX = lp.get(0).x;
-                    posY = lp.get(0).y;
-                }
-                ref = new Point(posX,posY,Color.CYAN,epaisseur);
-            }else{
-                ref.couleur = Color.BLUE;
-            }
+            firstRef();
+            ref.couleur = Color.BLUE;
+
             int ralentire = 5;
 
             float diffX = ((event.getX() - (width/2))/(width/echelle) )/ralentire;
             float diffY = ((event.getY() - (height/2))/(width/echelle))/ralentire;
-            //System.out.println(""+width+"  "+height);
+
 
             // 10/9/20
             //Point ppp = new Point(ref.x+diffX,ref.y-diffY,Color.YELLOW,epaisseur/10);
             //lp.add(ppp);
 
             ref.offSet(diffX, -diffY);
-
+            verification_zone_actif();
             invalidate();
 
 
@@ -206,7 +218,51 @@ public class Dessin extends View {
 
 
 
+    private void firstRef(){
+        if(ref == null){
+            float posX = 0;
+            float posY = 0;
+            if(lp.size() > 0) {
+                Point p = lp.get(lp.size()-1);
+                posX = p.x;
+                posY = p.y;
+            }
+            ref = new Point(posX,posY,Color.CYAN,epaisseur);
 
+            verification_zone_actif();
+        }
+    }
+
+
+    private void verification_zone_actif(){
+        if( (ZONE_LIMIT -(echelle/2))<=0 ){
+
+        } else if(zoneActif==null || !zoneActif.zone(ref, ZONE_LIMIT-echelle)){
+            zoneActif=new Point(ref);
+            lpActif.clear();
+             for (Point p : lp){
+                 if(in_zone_actif(p))lpActif.add(p);
+            }
+        }//else{
+            //System.out.println("------------"+ Math.max(Math.abs(zoneActif.x-ref.x), Math.abs(zoneActif.y-ref.y))+" < "+(ZONE_LIMIT - (echelle )));
+        //}
+
+    }
+
+    private Boolean in_zone_actif(Point point){
+
+        if( (ZONE_LIMIT -(echelle/2))<=0 ){
+            return false;
+        }else {
+            return zoneActif.zone(point, ZONE_LIMIT );
+        }
+    }
+
+    private void add_in_zone_actif(Point point){
+        if(in_zone_actif(point)){
+            lpActif.add(point);
+        }
+    }
 
 
     public void modifEchelle(float e){
@@ -221,6 +277,7 @@ public class Dessin extends View {
         Point p=new Point(x,y,Color.GREEN, epaisseur);
         modifRefTrace(x,y);
         ref = p;
+        verification_zone_actif();
         invalidate ();
         return true;
     }
@@ -228,7 +285,8 @@ public class Dessin extends View {
     // 10/9/20
     public boolean modifRefTrace(int x, int y) {
         Point ppp = new Point(x, y, Color.CYAN, epaisseur / 3,new Date().getTime());
-        lp.add(ppp);
+        lptempo.add(ppp);
+        if(lptempo.size()>222)lptempo.remove(0);
         return true;
 
     }
@@ -238,18 +296,30 @@ public class Dessin extends View {
 
         Point p=new Point(x,y,color, epaisseur,t);
         lp.add(p);
-        invalidate ();
 
         return true;
     }
 
+    public void refresh(){
+        invalidate ();
+        firstRef();
+        verification_zone_actif();
+    }
+
     // 10/9/20
-    public boolean ajoutPointBleu(int x, int y,long t,String desc) {
+    public boolean ajoutPointBleu(int x, int y,long t,String desc){
+        return ajoutPointBleu(x, y,t,desc,true);
+    }
+    public boolean ajoutPointBleu(int x, int y,long t,String desc,Boolean refresh) {
 
         Point p=new Point(x,y,Color.MAGENTA, epaisseur*2,t);
         p.setDescription(desc);
         lp.add(p);
-        invalidate ();
+
+        if(refresh){
+            add_in_zone_actif(p);
+            invalidate ();
+        }
 
         return true;
     }
@@ -258,8 +328,8 @@ public class Dessin extends View {
 
         Point p=new Point(x,y,Color.CYAN, epaisseur,t);
         lp.add(p);
+        add_in_zone_actif(p);
         invalidate ();
-
 
         return true;
     }

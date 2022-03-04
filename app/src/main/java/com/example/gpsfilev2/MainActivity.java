@@ -149,10 +149,10 @@ public class MainActivity extends AppCompatActivity {
             miseAjourDuDessin();
             return true;
         } else if (id == R.id.diffZoneP || id == R.id.diffZoneM) {
-            if (id == R.id.diffZoneP && diffZone<10){
-                    diffZone += (float) 1;
-            } else if (id == R.id.diffZoneM && diffZone>0) {
-                    diffZone -= (float) 1;
+            if (id == R.id.diffZoneP ){
+                    diffZone += (float) 10;
+            } else if (id == R.id.diffZoneM && diffZone>2) {
+                    diffZone -= (float) 5;
             }
             dessin.diffZone = diffZone;
             vtext("X"+diffZone.toString());
@@ -171,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }else if (id == R.id.menuTest) {
+            dessin.diffZone=Float.parseFloat(echelle.getText().toString());
            item.setTitle("X"+dessin.diffZone.toString());
         }else if( id == R.id.export0){
             String name = fileName.getText().toString();
@@ -255,12 +256,13 @@ public class MainActivity extends AppCompatActivity {
                         float y = Float.parseFloat(longlat[1]);
                         // 10/9/20
                         if(bleu){
-                            dessin.ajoutPointBleu((int) (x * 100000), (int) (y * 100000),time,desc);
+                            dessin.ajoutPointBleu((int) (x * 100000), (int) (y * 100000),time,desc,false);
                         }else {
                             dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000),time);
                         }
                     }
                 }
+                dessin.refresh();
             }
 
 
@@ -319,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
                     vtext("L");
                 }else {
                     confirmation = false;
+                    vtext("");
                 }
 
                 if(contenu.getText().toString().contains("SUP")){
@@ -338,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
                 }else{
                     add.setText(";-)");
                     File f= myFiles.ouvrireFichier(fileName.getText().toString(),false);
-                    if(f != null) myFiles.ecrireFile(f,contenu.getText().toString()+"\n"+ myFiles.lireFile(f));
+                    if(f != null) myFiles.ecrireFile(f,"\n"+contenu.getText().toString(),true);
                     addConf = false;
                 }
             }
@@ -358,14 +361,15 @@ public class MainActivity extends AppCompatActivity {
         fileName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                File file;
-                file = myFiles.ouvrireFichier(fileName.getText().toString(),false);
 
-                if(file != null) {
+
+                if(myFiles.existe(fileName.getText().toString())) {
                     miseAjourDuDessin();
-                    String cont = myFiles.lireFile(file);
-
-                    contListView(cont);
+                    if(confirmation) {
+                        File file = myFiles.ouvrireFichier(fileName.getText().toString(), false);
+                        String cont = myFiles.lireFile(file);
+                        contListView(cont);
+                    }
                 }else{
                     contListView("ERREUR");
                 }
@@ -402,7 +406,7 @@ public class MainActivity extends AppCompatActivity {
 
         miseAjourDuDessin();
 
-        if(dessin.lp.size()>0)lastpoint= dessin.lp.get(0);
+        if(dessin.lp.size()>0)lastpoint= dessin.lp.get(dessin.lp.size()-1);
 
 
         echelle = findViewById(R.id.echelle);
@@ -444,12 +448,12 @@ public class MainActivity extends AppCompatActivity {
         count += 1;
         String lo = "" + String.valueOf(l.getLongitude());
         String la = "" + String.valueOf(l.getLatitude());
-        textLoc.setText( lo+"@"+la+"\n="+count);
-        editTextici.setText(lo+"@"+la);
+        textLoc.setText( la+"@"+lo+"\n="+count);
+        editTextici.setText(la+"@"+lo);
         majLaLoLocalisation(lo,la,false);
     }
 
-    private void majLaLoLocalisation(String lo,String la, boolean bleu){
+    private void majLaLoLocalisation(String lo,String la, boolean my_ble){
         /// ?????
         int x = (int) (Float.parseFloat(lo) * 100000);
         int y = (int) (Float.parseFloat(la) * 100000) ;
@@ -461,16 +465,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        if( capture.isChecked() || bleu){
+        if( capture.isChecked() || my_ble){
 
-            File file;
-            file = myFiles.ouvrireFichier(fileName.getText().toString(),false);
 
-            if(file != null) {
-                String cont = myFiles.lireFile(file);
-                if (cont == "File not exist") {
-                    cont = "";
-                }
+
+
+
 
 
                 inZone = false;
@@ -495,27 +495,27 @@ public class MainActivity extends AppCompatActivity {
 
 
                 if (!inZone) {
-
+                    File file = myFiles.ouvrireFichier(fileName.getText().toString(),false);
+                    if(file != null) {
                     // 10/9/20
                     long t = new Date().getTime();
-                    if(bleu){
+                    if(my_ble){
                         String desc = contenu.getText().toString();
-                        myFiles.ecrireFile(file, lo + "@" + la + "#"+desc+"@time@"+t+"\n" + cont); // file IN
+                        myFiles.ecrireFile(file, "\n" + lo + "@" + la + "#"+desc+"@time@"+t,true); // file IN
                         dessin.ajoutPointBleu(x, y,t,desc);
                     }else {
-                        myFiles.ecrireFile(file, lo + "@" + la + "@time@"+t+"\n" + cont);
+                        myFiles.ecrireFile(file, "\n" + lo + "@" + la + "@time@"+t ,true);
                         dessin.ajoutPointCyan(x, y,t);
                         lastpoint=new Point(x,y);
                         System.out.println("---new-last-point---"+x+" "+y);
                     }
-
-
+                    }else{
+                        v.setText(" err ");
+                    }
                 }
                 //contListView(myFiles.lireFile(file));
 
-            }else{
-                v.setText(" err ");
-            }
+
         }else{
             //contListView("Pas de capture");
         }
@@ -537,7 +537,7 @@ public class MainActivity extends AppCompatActivity {
         vtext("z" + nbL);
         contenu.setText("nbL > MAXI !"+confirmation);
 
-        if (nbL < MAXI || confirmation) {
+        if (nbL < MAXI ) {
             contenu.setText(s);
             confirmation = false;
         }
