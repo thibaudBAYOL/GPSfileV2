@@ -191,7 +191,6 @@ public static final int ZONE_LIMIT = 10000;
     @Override
     public boolean onTouchEvent(MotionEvent event) {
 
-        if(manual) {
             firstRef();
             ref.couleur = Color.BLUE;
 
@@ -209,9 +208,6 @@ public static final int ZONE_LIMIT = 10000;
             verification_zone_actif();
             invalidate();
 
-
-
-        }
 
         return true;
     }

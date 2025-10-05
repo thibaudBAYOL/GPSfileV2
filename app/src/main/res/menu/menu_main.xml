@@ -39,7 +39,7 @@
     <item
         android:id="@+id/menuTest"
         android:orderInCategory="100"
-        android:title="X?"
+        android:title="X?."
         app:showAsAction="never" />
 
     <item

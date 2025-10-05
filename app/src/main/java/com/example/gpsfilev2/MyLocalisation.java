@@ -43,7 +43,7 @@ public class MyLocalisation {
 
 
     void preOnResume(){
-
+        System.out.print("---preOnResume\n");
 
         Boolean okACCESS_FINE_LOCATION = Boolean.TRUE;
         Boolean okACCESS_COARSE_LOCATION = Boolean.TRUE;
@@ -64,7 +64,7 @@ public class MyLocalisation {
             if (lm != null) lm.requestLocationUpdates("gps", 2000, 1, listener);
 
         } else {
-            System.out.print("////////////////err d'otorisation GPS\n");
+            System.out.print("---////////////////err d'otorisation GPS\n");
 /*
             StringBuilder s = new StringBuilder();
 
@@ -79,7 +79,7 @@ public class MyLocalisation {
 
     void preOnPause() {
 
-        System.out.print("////////////////PAUSE////////////////////////////////////\n");
+        System.out.print("---////////////////PAUSE////////////////////////////////////\n");
         lm.removeUpdates(listener);
 
     }
