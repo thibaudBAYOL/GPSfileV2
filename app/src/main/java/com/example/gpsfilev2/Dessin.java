@@ -250,7 +250,11 @@ public static final int ZONE_LIMIT = 10000;
         if( (ZONE_LIMIT -(echelle/2))<=0 ){
             return false;
         }else {
-            return zoneActif.zone(point, ZONE_LIMIT );
+            if (zoneActif != null) {
+                return zoneActif.zone(point, (float) ZONE_LIMIT);
+            }else{
+                return false;
+            }
         }
     }
 
@@ -322,7 +326,7 @@ public static final int ZONE_LIMIT = 10000;
     // 10/9/20
     public boolean ajoutPointCyan(int x, int y,long t) {
 
-        Point p=new Point(x,y,Color.CYAN, epaisseur,t);
+        Point p=new Point((float) x,(float) y,Color.CYAN, epaisseur,t);
         lp.add(p);
         add_in_zone_actif(p);
         invalidate ();

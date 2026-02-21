@@ -1,6 +1,8 @@
 package com.example.gpsfilev2;
 
 import android.content.ClipData;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -8,6 +10,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -70,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+        Log.d("APP", "onCreate");
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -105,6 +109,22 @@ public class MainActivity extends AppCompatActivity {
         });
 
         init();
+
+        SharedPreferences prefs = getSharedPreferences("my_prefs", MODE_PRIVATE);
+
+        //fileName fileName.getText().toString(); fileName.setText("test3");   miseAjourDuDessin();
+        fileName.setText(prefs.getString("fileName", "test3"));
+        if (!fileName.getText().toString().equals("test3") ) miseAjourDuDessin();
+        // echelle // du dessin  dessin.diffZone=Float.parseFloat(echelle.getText().toString());
+        echelle.setText(prefs.getString("echelle", "200")); dessin.diffZone=Float.parseFloat(echelle.getText().toString());
+        // aSwitchManuel.isChecked() dessin.manual = true;
+        boolean manual = prefs.getBoolean("manual",false);
+        aSwitchManuel.setChecked(manual);dessin.manual = manual;
+        // capture.isChecked()
+        capture.setChecked(false);
+
+        // diffZone = (float)10;dessin.diffZone = diffZone; vtext("X"+diffZone.toString());
+        diffZone = prefs.getFloat("diffZone",diffZone);dessin.diffZone = diffZone; vtext("X"+diffZone.toString());
     }
 
     @Override
@@ -209,14 +229,13 @@ public class MainActivity extends AppCompatActivity {
         dessin.lp.clear();
         String [] tabCorr;
 
-        MyFiles myFiles = new MyFiles(this);
         String cont = myFiles.lireSimple(fileName.getText().toString());
         if( !cont.equals("File not exist") ){
 
             tabCorr = cont.split("\n");
 
             if( tabCorr.length >= 1) {
-
+                long t = new Date().getTime();
                 for (int i = 0; i < tabCorr.length ; i++) {
                     String sss =tabCorr[i];
                     long time=0;
@@ -258,10 +277,15 @@ public class MainActivity extends AppCompatActivity {
                         if(bleu){
                             dessin.ajoutPointBleu((int) (x * 100000), (int) (y * 100000),time,desc,false);
                         }else {
-                            dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000),time);
+                            if ( (t - time) < (24L * 60L * 60L * 1000L) ){
+                                dessin.ajoutPointCyan((int) (x * 100000), (int) (y * 100000),time);
+                            }else {
+                                dessin.ajoutPoint((int) (x * 100000), (int) (y * 100000), time);
+                            }
                         }
                     }
                 }
+                Log.d("APP", "miseAjourDuDessin");
                 dessin.refresh();
             }
 
@@ -362,13 +386,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-
+                System.out.println("---fileName-onClick--");
                 if(myFiles.existe(fileName.getText().toString())) {
                     miseAjourDuDessin();
                     if(confirmation) {
                         File file = myFiles.ouvrireFichier(fileName.getText().toString(), false);
                         String cont = myFiles.lireFile(file);
                         contListView(cont);
+                        System.out.println("---fileName-onClick-lireFile-");
                     }
                 }else{
                     contListView("ERREUR");
@@ -380,6 +405,17 @@ public class MainActivity extends AppCompatActivity {
         contenu = findViewById(R.id.contenu);
 
         capture = findViewById(R.id.capture);
+
+        capture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (capture.isChecked()) {
+                    startService(new Intent(MainActivity.this, MyServiceGPS.class));
+                } else {
+                    stopService(new Intent(MainActivity.this, MyServiceGPS.class));
+                }
+            }
+        });
 
         editTextici = findViewById(R.id.editTextici);
         //ptVU = findViewById(R.id.ptVu);
@@ -467,14 +503,8 @@ public class MainActivity extends AppCompatActivity {
 
         if( capture.isChecked() || my_ble){
 
-
-
-
-
-
-
                 inZone = false;
-                if( (lastpoint!=null && lastpoint.zone((float) x, (float) y,10))|| !continu){
+                if( lastpoint!=null && (lastpoint.zone((float) x, (float) y,10)|| !continu)){
                     System.out.println("---inzone---"+x+" "+y+ "  "+lastpoint.x+" "+lastpoint.y);
 
                     int i=0;
@@ -544,34 +574,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void onStop() {
+        super.onStop();
+        SharedPreferences prefs = getSharedPreferences("my_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        //fileName
+        editor.putString("fileName",fileName.getText().toString());
+        // echelle // du dessin  dessin.diffZone=Float.parseFloat(echelle.getText().toString());
+        editor.putString("echelle",echelle.getText().toString());
+        //  dessin.manual = true;
+        editor.putBoolean("manual",aSwitchManuel.isChecked());
+        // capture.isChecked()
+        editor.putBoolean("capture",capture.isChecked());
+        // diffZone
+        editor.putFloat("diffZone",diffZone);
+        editor.apply(); // async
+        if (capture.isChecked() ) {
+            Intent intent = new Intent("APP_IN_BACKGROUND");
+            sendBroadcast(intent);
+        }
+    }
 
+    @Override
+    protected void onRestart(){
+        super.onRestart();
+        if (capture.isChecked() ) {
+            Intent intent = new Intent("APP_IN_FRONT");
+            sendBroadcast(intent);
+            miseAjourDuDessin();
+        }
+        myLocalisation.preOnResume();
+    }
 
     @Override
     protected void onResume() {
         super.onResume();
-            myLocalisation.preOnResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        //if(nop == false){
-            myLocalisation.preOnPause();
-        //}
+        myLocalisation.preOnPause();
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+    protected void onDestroy() {
+        stopService(new Intent(this, MyServiceGPS.class));
+        Log.d("APP", "APP détruit !");
+        super.onDestroy();
+    }
 
 }
