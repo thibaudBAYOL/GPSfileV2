@@ -271,7 +271,13 @@ public static final int ZONE_LIMIT = 10000;
     }
 
 
-
+    public boolean returnRef(){
+        ref = null;
+        firstRef();
+        verification_zone_actif();
+        invalidate ();
+        return true;
+    }
 
     public boolean modifRef(int x, int y){
         Point p=new Point(x,y,Color.GREEN, epaisseur);

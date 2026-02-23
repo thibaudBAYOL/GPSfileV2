@@ -1,13 +1,18 @@
 package com.example.gpsfilev2;
 
+import android.Manifest;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -433,6 +438,7 @@ public class MainActivity extends AppCompatActivity {
                     dessin.manual = true;
                 }else if(aSwitchManuel.isChecked() && dessin.manual){
                     dessin.manual = false;
+                    dessin.returnRef();
                 }
             }
         });
@@ -478,7 +484,48 @@ public class MainActivity extends AppCompatActivity {
         };
 
         myLocalisation = new MyLocalisation(this,ln);
+
+        demanderPermissions();
     }
+
+    private void demanderPermissions() {
+
+        // Permissions classiques
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    },
+                    1000);
+        }
+
+        // Android 10+ : localisation en arrière-plan
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ Manifest.permission.ACCESS_BACKGROUND_LOCATION },
+                    1001);
+        }
+
+        // Android 13 : permission pour notifications
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ Manifest.permission.POST_NOTIFICATIONS },
+                    1002);
+        }
+    }
+
+
 
     private void majLocalisation( Location l ) {
         count += 1;
