@@ -1,6 +1,7 @@
 package com.example.gpsfilev2;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -120,8 +121,8 @@ public class MainActivity extends AppCompatActivity {
         //fileName fileName.getText().toString(); fileName.setText("test3");   miseAjourDuDessin();
         fileName.setText(prefs.getString("fileName", "test3"));
         if (!fileName.getText().toString().equals("test3") ) miseAjourDuDessin();
-        // echelle // du dessin  dessin.diffZone=Float.parseFloat(echelle.getText().toString());
-        echelle.setText(prefs.getString("echelle", "200")); dessin.diffZone=Float.parseFloat(echelle.getText().toString());
+        // echelle // du dessin  dessin.modifEchelle(Float.parseFloat(echelle.getText().toString()));
+        echelle.setText(prefs.getString("echelle", "200")); dessin.modifEchelle(Float.parseFloat(echelle.getText().toString()));
         // aSwitchManuel.isChecked() dessin.manual = true;
         boolean manual = prefs.getBoolean("manual",false);
         aSwitchManuel.setChecked(manual);dessin.manual = manual;
@@ -154,17 +155,18 @@ public class MainActivity extends AppCompatActivity {
             //nop = true;
             diffZone = (float)2;
             dessin.diffZone = diffZone;
+            vtext("X"+diffZone.toString());
             //item.setTitle("X"+dessin.diffZone.toString());
             //menuItemX.setTitle("X"+dessin.diffZone.toString());
             return true;
         }else if(id == R.id.X5) {
             diffZone = (float)5;
             dessin.diffZone = diffZone;
+            vtext("X"+diffZone.toString());
         }else if (id == R.id.action_settings) {
             diffZone = (float)10;
             dessin.diffZone = diffZone;
-            //item.setTitle("X"+dessin.diffZone.toString());
-            //menuItemX.setTitle("X"+dessin.diffZone.toString());
+            vtext("X"+diffZone.toString());
             return true;
         } else if (id == R.id.action_t3) {
             cacher = true;
@@ -181,7 +183,6 @@ public class MainActivity extends AppCompatActivity {
             }
             dessin.diffZone = diffZone;
             vtext("X"+diffZone.toString());
-            //menuItemX.setTitle("X"+dessin.diffZone.toString());
             return true;
         }else if(id == R.id.captureMenu){
             if(!capture.isChecked()) {
@@ -196,8 +197,10 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         }else if (id == R.id.menuTest) {
-            dessin.diffZone=Float.parseFloat(echelle.getText().toString());
-           item.setTitle("X"+dessin.diffZone.toString());
+            diffZone = Float.parseFloat(contenu.getText().toString());
+            dessin.diffZone = diffZone;
+            vtext("X"+diffZone.toString());
+            item.setTitle("X"+diffZone.toString());
         }else if( id == R.id.export0){
             String name = fileName.getText().toString();
             String cont =myFiles.lireSimple(name);
@@ -415,7 +418,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (capture.isChecked()) {
-                    startService(new Intent(MainActivity.this, MyServiceGPS.class));
+                    Intent intent = new Intent(MainActivity.this, MyServiceGPS.class);
+                    ContextCompat.startForegroundService(MainActivity.this, intent);
+
+                    // Android 13 : permission pour notifications
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                            ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.POST_NOTIFICATIONS)
+                                    != PackageManager.PERMISSION_GRANTED) {
+
+                        ActivityCompat.requestPermissions(MainActivity.this,
+                                new String[]{ Manifest.permission.POST_NOTIFICATIONS },
+                                1002);
+                    }
+
                 } else {
                     stopService(new Intent(MainActivity.this, MyServiceGPS.class));
                 }
@@ -484,8 +499,7 @@ public class MainActivity extends AppCompatActivity {
         };
 
         myLocalisation = new MyLocalisation(this,ln);
-
-        demanderPermissions();
+        myLocalisation.preOnResume();
     }
 
     private void demanderPermissions() {
@@ -509,20 +523,24 @@ public class MainActivity extends AppCompatActivity {
                 ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this,
-                    new String[]{ Manifest.permission.ACCESS_BACKGROUND_LOCATION },
-                    1001);
+            // Afficher un dialogue explicatif avant la demande
+            new AlertDialog.Builder(this)
+                    .setTitle("Autorisation requise")
+                    .setMessage("Pour que l'application fonctionne correctement, elle doit accéder à votre position même lorsque l'application est fermée ou en arrière‑plan.")
+                    .setPositiveButton("Autoriser", (dialog, which) -> {
+                        ActivityCompat.requestPermissions(
+                                this,
+                                new String[]{ Manifest.permission.ACCESS_BACKGROUND_LOCATION },
+                                1001
+                        );
+                    })
+                    .setNegativeButton("Annuler", (dialog, which) -> {
+                        dialog.dismiss();
+                    })
+                    .setCancelable(false)
+                    .show();
         }
 
-        // Android 13 : permission pour notifications
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                        != PackageManager.PERMISSION_GRANTED) {
-
-            ActivityCompat.requestPermissions(this,
-                    new String[]{ Manifest.permission.POST_NOTIFICATIONS },
-                    1002);
-        }
     }
 
 
@@ -627,7 +645,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences.Editor editor = prefs.edit();
         //fileName
         editor.putString("fileName",fileName.getText().toString());
-        // echelle // du dessin  dessin.diffZone=Float.parseFloat(echelle.getText().toString());
+        // echelle // du dessin  echelle.getText().toString()
         editor.putString("echelle",echelle.getText().toString());
         //  dessin.manual = true;
         editor.putBoolean("manual",aSwitchManuel.isChecked());
@@ -656,6 +674,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d("APP", "APP onResume !");
+        demanderPermissions();
     }
 
     @Override

@@ -2,11 +2,12 @@ package com.example.gpsfilev2;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.v4.content.ContextCompat;
-
+import android.content.SharedPreferences;
 public class MyLocalisation {
 
     Context cont0;
@@ -61,9 +62,15 @@ public class MyLocalisation {
         }
 
         if (okACCESS_FINE_LOCATION && okACCESS_COARSE_LOCATION) {
-            if (lm != null) lm.requestLocationUpdates("gps", 2000, 1, listener);
+            if (lm != null) {
+                SharedPreferences prefs = cont0.getSharedPreferences("my_prefs", cont0.MODE_PRIVATE);
+                float diffzone = prefs.getFloat("diffZone",1);
+                System.out.print("diffZone:" + diffzone);
+                lm.requestLocationUpdates("gps", 2000,diffzone, listener);
+            }
 
         } else {
+
             System.out.print("---////////////////err d'otorisation GPS\n");
 /*
             StringBuilder s = new StringBuilder();
@@ -78,10 +85,7 @@ public class MyLocalisation {
 
 
     void preOnPause() {
-
-        System.out.print("---////////////////PAUSE////////////////////////////////////\n");
         lm.removeUpdates(listener);
-
     }
 
 

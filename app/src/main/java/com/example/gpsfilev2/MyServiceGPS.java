@@ -35,11 +35,6 @@ public class MyServiceGPS extends Service {
    @Override public void onCreate() {
       super.onCreate();
       Log.d("SERVICE", "onCreate");
-      // Enregistrer le receiver
-      IntentFilter filter = new IntentFilter();
-      filter.addAction("APP_IN_BACKGROUND");
-      filter.addAction("APP_IN_FRONT");
-      registerReceiver(serviceReceiver, filter);
 
       // 🔥 1. Création du canal de notification (obligatoire Android 8+)
       createNotificationChannel();
@@ -52,6 +47,13 @@ public class MyServiceGPS extends Service {
               .setOngoing(true) .build();
       // 🔥 3. Lancer le service en mode Foreground
       startForeground(1, notification);
+
+      // Enregistrer le receiver
+      IntentFilter filter = new IntentFilter();
+      filter.addAction("APP_IN_BACKGROUND");
+      filter.addAction("APP_IN_FRONT");
+      registerReceiver(serviceReceiver, filter);
+
 
       LocationListener ln = new LocationListener() {
           @Override
@@ -72,7 +74,6 @@ public class MyServiceGPS extends Service {
           }
       };
       myLocalisation = new MyLocalisation(this,ln);
-      myLocalisation.preOnPause();
       myFiles = new MyFiles(this);
     }
 
@@ -119,7 +120,7 @@ public class MyServiceGPS extends Service {
       public void onReceive(Context context, Intent intent) {
          String action = intent.getAction();
          SharedPreferences prefs = getSharedPreferences("my_prefs", MODE_PRIVATE);
-         if (prefs.getBoolean("capture",false)) {
+
             if ("APP_IN_BACKGROUND".equals(action)) {
                Log.d("SERVICE", "Reçu : APP_IN_BACKGROUND");
                file = myFiles.ouvrireFichier(prefs.getString("fileName", "test3"), false);
@@ -132,11 +133,6 @@ public class MyServiceGPS extends Service {
                updateNotification("APP_IN_FRONT");
                count = 0;
             }
-         } else {
-            Log.d("SERVICE", "NO capture MyServiceGPS PAUSE");
-            updateNotification("NO capture");
-            myLocalisation.preOnPause();
-         }
       }
    };
 
@@ -148,7 +144,6 @@ public class MyServiceGPS extends Service {
 
    @Override
    public void onTaskRemoved(Intent rootIntent) {
-      stopForeground(true); // retire la notification
       stopSelf(); // arrête le service
       Log.d("SERVICE", "MyServiceGPS onTaskRemoved");
       super.onTaskRemoved(rootIntent);
@@ -156,6 +151,7 @@ public class MyServiceGPS extends Service {
 
    @Override
    public void onDestroy() {
+      stopForeground(true); // retire la notification
       unregisterReceiver(serviceReceiver);
       Log.d("SERVICE", "Service détruit !");
       super.onDestroy();

@@ -52,7 +52,6 @@ public class Point {
 
     public Boolean zone(Point p, float diff){
         return  Math.abs(x-p.x) <  diff && Math.abs(y-p.y) <  diff;
-
     }
 
     // 10/9/20
